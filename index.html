@@ -269,14 +269,16 @@
                     downloadLabel.textContent = 'Download started';
                     downloadBtn.removeAttribute('aria-busy');
                     downloadBtn.classList.remove('opacity-90', 'cursor-wait');
-                    downloadStatus.textContent = 'Check your browser downloads or notification bar.';
-                    downloadStatus.classList.remove('hidden');
+                    downloadStatus.textContent = '';
+                    downloadStatus.classList.add('hidden');
                     return;
                 }
 
                 downloadLabel.textContent = 'Download for Android';
                 downloadBtn.removeAttribute('aria-busy');
                 downloadBtn.classList.remove('opacity-90', 'cursor-wait');
+                downloadStatus.textContent = '';
+                downloadStatus.classList.add('hidden');
             };
 
             const triggerDownloadFeedback = () => {
