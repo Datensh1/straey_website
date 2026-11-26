@@ -44,14 +44,22 @@
             </p>
             
             <div id="download" class="flex flex-col items-center justify-center gap-4">
-                <a href="straey.apk" download="straey.apk" class="inline-flex items-center justify-center bg-black text-white px-8 py-4 rounded-full font-semibold text-lg hover:bg-gray-800 hover:scale-[1.02] transition-all shadow-md focus:outline-none focus:ring-4 focus:ring-black/20">
-                    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <a id="download-btn" href="straey.apk" download="straey.apk" class="inline-flex items-center justify-center bg-black text-white px-8 py-4 rounded-full font-semibold text-lg hover:bg-gray-800 hover:scale-[1.02] active:scale-[0.98] transition-all shadow-md focus:outline-none focus:ring-4 focus:ring-black/20">
+                    <svg id="download-icon" class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
                     </svg>
-                    Download for Android
+                    <svg id="download-spinner" class="hidden w-5 h-5 mr-3 animate-spin" fill="none" viewBox="0 0 24 24" aria-hidden="true">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3"></circle>
+                        <path class="opacity-90" fill="currentColor" d="M4 12a8 8 0 018-8v3a5 5 0 00-5 5H4z"></path>
+                    </svg>
+                    <svg id="download-check" class="hidden w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path>
+                    </svg>
+                    <span id="download-label">Download for Android</span>
                 </a>
+                <p id="download-status" class="hidden text-sm font-medium text-slate-600" role="status" aria-live="polite"></p>
                 <span class="text-sm font-medium text-slate-400">Version 1.0.0 &bull; 62.2 MB &bull; Android 6.0+ &bull; Free APK</span>
-                <p class="text-xs text-slate-400">Download didn&rsquo;t start? <a href="straey.apk" class="underline hover:text-slate-600 transition-colors">Tap here for the direct APK link</a>.</p>
+                <p class="text-xs text-slate-400">Download didn&rsquo;t start? <a id="download-fallback" href="straey.apk" download="straey.apk" class="underline hover:text-slate-600 transition-colors">Tap here for the direct APK link</a>.</p>
             </div>
 
             <!-- App Preview Gallery -->
@@ -230,6 +238,72 @@
 
     <script>
         document.getElementById('year').textContent = new Date().getFullYear();
+
+        const downloadBtn = document.getElementById('download-btn');
+        const downloadIcon = document.getElementById('download-icon');
+        const downloadSpinner = document.getElementById('download-spinner');
+        const downloadCheck = document.getElementById('download-check');
+        const downloadLabel = document.getElementById('download-label');
+        const downloadStatus = document.getElementById('download-status');
+        const downloadFallback = document.getElementById('download-fallback');
+
+        if (downloadBtn && downloadIcon && downloadSpinner && downloadCheck && downloadLabel && downloadStatus) {
+            let spinnerTimer = null;
+            let resetTimer = null;
+
+            const setDownloadState = (state) => {
+                downloadIcon.classList.toggle('hidden', state !== 'idle');
+                downloadSpinner.classList.toggle('hidden', state !== 'loading');
+                downloadCheck.classList.toggle('hidden', state !== 'started');
+
+                if (state === 'loading') {
+                    downloadLabel.textContent = 'Starting download...';
+                    downloadBtn.setAttribute('aria-busy', 'true');
+                    downloadBtn.classList.add('opacity-90', 'cursor-wait');
+                    downloadStatus.textContent = 'Preparing straey.apk (62.2 MB)...';
+                    downloadStatus.classList.remove('hidden');
+                    return;
+                }
+
+                if (state === 'started') {
+                    downloadLabel.textContent = 'Download started';
+                    downloadBtn.removeAttribute('aria-busy');
+                    downloadBtn.classList.remove('opacity-90', 'cursor-wait');
+                    downloadStatus.textContent = 'Check your browser downloads or notification bar.';
+                    downloadStatus.classList.remove('hidden');
+                    return;
+                }
+
+                downloadLabel.textContent = 'Download for Android';
+                downloadBtn.removeAttribute('aria-busy');
+                downloadBtn.classList.remove('opacity-90', 'cursor-wait');
+            };
+
+            const triggerDownloadFeedback = () => {
+                clearTimeout(spinnerTimer);
+                clearTimeout(resetTimer);
+                setDownloadState('loading');
+
+                spinnerTimer = setTimeout(() => {
+                    setDownloadState('started');
+                    resetTimer = setTimeout(() => {
+                        setDownloadState('idle');
+                    }, 4000);
+                }, 2000);
+            };
+
+            downloadBtn.addEventListener('click', (event) => {
+                if (downloadBtn.getAttribute('aria-busy') === 'true') {
+                    event.preventDefault();
+                    return;
+                }
+                triggerDownloadFeedback();
+            });
+
+            if (downloadFallback) {
+                downloadFallback.addEventListener('click', triggerDownloadFeedback);
+            }
+        }
 
         const appPreviewGallery = document.getElementById('app-preview-gallery');
         const appPreviewLeft = document.getElementById('app-preview-left');
